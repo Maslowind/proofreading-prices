@@ -45,42 +45,61 @@ const slavicGetDay = function (numb) { // ф-ция для перевода дн
 
 
 
+exports.output = function (price, time) { //вывод
+  let todayDate = new Date(2020,3,5,15,59,0, 0); 
+  let finalDate = getfinalDate(time,todayDate);
+  let result = "Спасибо! Стоимость Вашего заказа: " +
+    Math.round(price, 0) + " грн. Вы можете забрать его в " + outputHelper(finalDate.getHours()) + ":" +
+    outputHelper(finalDate.getMinutes()) + " " + outputHelper(finalDate.getDate()) + "." + outputHelper(finalDate.getMonth() + 1)
+    + "." + finalDate.getFullYear();
+  return result;
+}
 
 
-const getfinalDate = function (allTimeInHours) { //ф-ция для подсчета даты, когда продукт будет готов
-  let countOfHolidays = 0; // кол-во оставшихся до понедельника выходных дней с момента заказа
-  let countOfWeeks = 0; //кол-во недель, которые уйдут на реализацию заказа
-  let countOfWorkingDays = 0; // кол-во  дней, которые уйдут на реализацию заказа с учетом выходных
-  let todayDate = new Date(); // сегодняшняя дата
 
-  let timeInDays = Math.floor(allTimeInHours / 9); // кол-во рабочих дней, которые уйдут на реализацию заказа 
 
-  let timeInHoursPerDay = convertDaysToMs(0, allTimeInHours % 9, 0, 0, 0); //кол-во мс, которое понадобится в последний день, чтоб выполнить заказ
-  let todayDateHourMs = convertDaysToMs(0, todayDate.getHours(), todayDate.getMinutes(), 0, 0); // время когда заказ сделан в мс
-  let resultTimeInMs = 0; //Время дня, когда заказ будет готов
-  if (todayDateHourMs < convertDaysToMs(0, 9, 0, 0, 0) || slavicGetDay(todayDate.getDay()) >= 5) {// Случай когда сделан раньше 9.00 АМ или в выходной день
-    resultTimeInMs = convertDaysToMs(0, 9, 0, 0, 0) + timeInHoursPerDay;
+
+
+
+const getfinalDate = function (allTimeInHours, todayDate) { //ф-ция для подсчета даты, когда продукт будет готов
+
+  let countOfHolidays = 0; 
+  let countOfWeeks = 0; 
+  let countOfWorkingDays = 0; 
+  let timeInDays = Math.floor(allTimeInHours / 9); 
+
+  let timeInHoursPerDay = convertDaysToMs(0, allTimeInHours % 9, 0, 0, 0); 
+  let todayDateHourMs = convertDaysToMs(0, todayDate.getHours(), todayDate.getMinutes(), 0, 0); 
+  let resultTimeInMs = 0; 
+  if (todayDateHourMs < convertDaysToMs(0, 10, 0, 0, 0) || slavicGetDay(todayDate.getDay()) >= 5) {// Случай когда сделан раньше 10.00 АМ или в выходной день
+    resultTimeInMs = convertDaysToMs(0, 10, 0, 0, 0) + timeInHoursPerDay;
+    console.log(1);
   }
   else if (todayDateHourMs > convertDaysToMs(0, 19, 0, 0, 0)) { // Случай когда сделан позже 7.00 РМ 
-    resultTimeInMs = convertDaysToMs(0, 9, 0, 0, 0) + timeInHoursPerDay;
+    resultTimeInMs = convertDaysToMs(0, 10, 0, 0, 0) + timeInHoursPerDay;
     timeInDays++;
+    console.log(2)
   }
   else if ((todayDateHourMs + timeInHoursPerDay) > convertDaysToMs(0, 19, 0, 0, 0)) { // Случай когда заказ выполняется позже 7.00 РМ 
-    resultTimeInMs = todayDateHourMs + timeInHoursPerDay - convertDaysToMs(0, 10, 0, 0, 0);
+    resultTimeInMs = todayDateHourMs + timeInHoursPerDay - convertDaysToMs(0, 9, 0, 0, 0);
     timeInDays++;
+    console.log(3)
   }
   else { //Заказ сделан в период с 9.00 АМ до 7.00 РМ в будний день
     resultTimeInMs = todayDateHourMs + timeInHoursPerDay;
+    console.log(4)
   }
 
-
-  if ((timeInDays + slavicGetDay(todayDate.getDay()) > 5)) { // в данном блоке получаем кол-во недель, которые потребуются на реализацию заказа
+console.log(timeInDays,slavicGetDay(todayDate.getDay()));
+  if ((timeInDays + slavicGetDay(todayDate.getDay()) >= 5)) { // в данном блоке получаем кол-во недель, которые потребуются на реализацию заказа
     if (slavicGetDay(todayDate.getDay()) >= 5) { // в данном блоке обрабатываем случай, если заказ сделан в выходной день
       countOfWeeks = Math.floor(timeInDays / 5);
       countOfHolidays = 7 - slavicGetDay(todayDate.getDay());
+      console.log(5)
     }
     else { // в данном блоке обрабатываем случай, если заказ сделан в рабочий день
       countOfWeeks = Math.floor((timeInDays + slavicGetDay(todayDate.getDay())) / 5);
+      console.log(6);
     }
   }
 
@@ -106,11 +125,4 @@ const convertDaysToMs = function (days, hours, min, sec, ms) {// конверт�
   return (((days * 24 + hours) * 60 + min) * 60 + sec) * 1000 + ms;
 }
 
-exports.output = function (price, time) { //вывод
-  let finalDate = getfinalDate(time);
-  let result = "Спасибо! Стоимость Вашего заказа: " +
-    Math.round(price, 0) + " грн. Вы можете забрать его в " + outputHelper(finalDate.getHours()) + ":" +
-    outputHelper(finalDate.getMinutes()) + " " + outputHelper(finalDate.getDate()) + "." + outputHelper(finalDate.getMonth() + 1)
-    + "." + finalDate.getFullYear();
-  return result;
-}
+
