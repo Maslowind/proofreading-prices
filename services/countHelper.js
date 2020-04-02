@@ -1,10 +1,19 @@
 exports.getPrice = function (countOfSymbols, language) { //ф-ция для определения стоимости
   let priceForSymbol, price;
-  if (language === "ru" || language === "ua") priceForSymbol = 0.05;
-  else if (language === "en") priceForSymbol = 0.12;
-  else return 0;
-  if (countOfSymbols < 1000) price = 1000 * priceForSymbol;
-  else price = countOfSymbols * priceForSymbol;
+  if (language === "ru" || language === "ua") {
+    priceForSymbol = 0.05;
+  } else if (language === "en") {
+    priceForSymbol = 0.12;
+  } else {
+    return 0;
+  }
+  if (countOfSymbols <= 0) {
+    return 0;
+  } else if (countOfSymbols < 1000) {
+    price = 1000 * priceForSymbol;
+  } else {
+    price = countOfSymbols * priceForSymbol;
+  }
   return price;
 };
 
@@ -14,11 +23,21 @@ exports.getPrice = function (countOfSymbols, language) { //ф-ция для оп
 
 exports.getTime = function (countOfSymbols, language) { //ф-ция для определения затраченного времени
   let timeForSymbol, time;
-  if (language === "ru" || language === "ua") timeForSymbol = 1333;
-  else if (language === "en") timeForSymbol = 333;
-  else return 0;
-  time = 0.5 + countOfSymbols / timeForSymbol;
-  if (time < 1) time = 1;
+  if (language === "ru" || language === "ua") {
+    timeForSymbol = 1333;
+  } else if (language === "en") {
+    timeForSymbol = 333;
+  } else {
+    return 0;
+  }
+  if (countOfSymbols > 0) {
+    time = 0.5 + countOfSymbols / timeForSymbol;
+    if (time < 1) {
+      time = 1;
+    }
+  } else {
+    return 0;
+  }
   return time;
 };
 
@@ -27,8 +46,12 @@ exports.getTime = function (countOfSymbols, language) { //ф-ция для оп�
 
 
 exports.isExpensive = function (format) { // ф-ция для проверки формата файла
-  if (format === "docx" || format === "doc" || format === "rtf") return true;
-  else return false;
+  if (format === "docx" || format === "doc" || format === "rtf") {
+    return true;
+  }
+  else {
+    return false;
+  }
 };
 
 
@@ -45,13 +68,10 @@ const slavicGetDay = function (numb) { // ф-ция для перевода дн
 
 
 
-exports.output = function (price, time) { //вывод
-  let todayDate = new Date(2020,3,5,15,59,0, 0); 
-  let finalDate = getfinalDate(time,todayDate);
-  let result = "Спасибо! Стоимость Вашего заказа: " +
-    Math.round(price, 0) + " грн. Вы можете забрать его в " + outputHelper(finalDate.getHours()) + ":" +
-    outputHelper(finalDate.getMinutes()) + " " + outputHelper(finalDate.getDate()) + "." + outputHelper(finalDate.getMonth() + 1)
-    + "." + finalDate.getFullYear();
+exports.output = function (price, time) {
+  let todayDate = new Date();
+  let finalDate = getfinalDate(time, todayDate);
+  let result = `Спасибо! Стоимость Вашего заказа: ${Math.round(price, 0)}  грн. Вы можете забрать его в ${outputHelper(finalDate.getHours())}:${outputHelper(finalDate.getMinutes())} ${outputHelper(finalDate.getDate())}.${outputHelper(finalDate.getMonth() + 1)}. ${finalDate.getFullYear()}`;
   return result;
 }
 
@@ -63,43 +83,32 @@ exports.output = function (price, time) { //вывод
 
 const getfinalDate = function (allTimeInHours, todayDate) { //ф-ция для подсчета даты, когда продукт будет готов
 
-  let countOfHolidays = 0; 
-  let countOfWeeks = 0; 
-  let countOfWorkingDays = 0; 
-  let timeInDays = Math.floor(allTimeInHours / 9); 
+  let countOfHolidays = 0;
+  let countOfWeeks = 0;
+  let countOfWorkingDays = 0;
+  let timeInDays = Math.floor(allTimeInHours / 9);
 
-  let timeInHoursPerDay = convertDaysToMs(0, allTimeInHours % 9, 0, 0, 0); 
-  let todayDateHourMs = convertDaysToMs(0, todayDate.getHours(), todayDate.getMinutes(), 0, 0); 
-  let resultTimeInMs = 0; 
+  let timeInHoursPerDay = convertDaysToMs(0, allTimeInHours % 9, 0, 0, 0);
+  let todayDateHourMs = convertDaysToMs(0, todayDate.getHours(), todayDate.getMinutes(), 0, 0);
+  let resultTimeInMs = 0;
   if (todayDateHourMs < convertDaysToMs(0, 10, 0, 0, 0) || slavicGetDay(todayDate.getDay()) >= 5) {// Случай когда сделан раньше 10.00 АМ или в выходной день
     resultTimeInMs = convertDaysToMs(0, 10, 0, 0, 0) + timeInHoursPerDay;
-    console.log(1);
-  }
-  else if (todayDateHourMs > convertDaysToMs(0, 19, 0, 0, 0)) { // Случай когда сделан позже 7.00 РМ 
+  } else if (todayDateHourMs > convertDaysToMs(0, 19, 0, 0, 0)) { // Случай когда сделан позже 7.00 РМ 
     resultTimeInMs = convertDaysToMs(0, 10, 0, 0, 0) + timeInHoursPerDay;
     timeInDays++;
-    console.log(2)
-  }
-  else if ((todayDateHourMs + timeInHoursPerDay) > convertDaysToMs(0, 19, 0, 0, 0)) { // Случай когда заказ выполняется позже 7.00 РМ 
+  } else if ((todayDateHourMs + timeInHoursPerDay) > convertDaysToMs(0, 19, 0, 0, 0)) { // Случай когда заказ выполняется позже 7.00 РМ 
     resultTimeInMs = todayDateHourMs + timeInHoursPerDay - convertDaysToMs(0, 9, 0, 0, 0);
     timeInDays++;
-    console.log(3)
-  }
-  else { //Заказ сделан в период с 9.00 АМ до 7.00 РМ в будний день
+  } else { //Заказ сделан в период с 9.00 АМ до 7.00 РМ в будний день
     resultTimeInMs = todayDateHourMs + timeInHoursPerDay;
-    console.log(4)
   }
 
-console.log(timeInDays,slavicGetDay(todayDate.getDay()));
   if ((timeInDays + slavicGetDay(todayDate.getDay()) >= 5)) { // в данном блоке получаем кол-во недель, которые потребуются на реализацию заказа
     if (slavicGetDay(todayDate.getDay()) >= 5) { // в данном блоке обрабатываем случай, если заказ сделан в выходной день
       countOfWeeks = Math.floor(timeInDays / 5);
       countOfHolidays = 7 - slavicGetDay(todayDate.getDay());
-      console.log(5)
-    }
-    else { // в данном блоке обрабатываем случай, если заказ сделан в рабочий день
+    } else { // в данном блоке обрабатываем случай, если заказ сделан в рабочий день
       countOfWeeks = Math.floor((timeInDays + slavicGetDay(todayDate.getDay())) / 5);
-      console.log(6);
     }
   }
 
@@ -110,12 +119,15 @@ console.log(timeInDays,slavicGetDay(todayDate.getDay()));
   return dateWithDay;
 };
 
-
+exports.getfinalDate = getfinalDate;
 
 
 const outputHelper = function (num) {//функция для красоты вывода
-  if (num < 10) return "0" + num;
-  else return num;
+  if (num < 10) {
+    return "0" + num;
+  } else {
+    return num;
+  }
 }
 
 
